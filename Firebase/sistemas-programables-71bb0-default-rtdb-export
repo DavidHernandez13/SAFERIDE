@@ -1,0 +1,28 @@
+{
+  "estado": {
+    "online": 1
+  },
+  "estado_ciclista": {
+    "accidente": false,
+    "baja_iluminacion": true
+  },
+  "logs": {
+    "eventos": {
+      "{id_evento}": {
+        "mensaje": "ESP32 iniciado correctamente",
+        "timestamp": 1781114986351,
+        "tipo": "SISTEMA"
+      }
+    }
+  },
+  "sensores": {
+    "LDR": {
+      "porcentaje": 26,
+      "raw": 1088
+    }
+  },
+  "ubicacion": {
+    "latitud": 21.109616,
+    "longitud": 101.627570
+  }
+}
