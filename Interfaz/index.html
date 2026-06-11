@@ -1,0 +1,524 @@
+<!-- 
+    ============================================================
+    SAFERIDE - DASHBOARD WEB DE CONTROL
+    ============================================================
+    
+    FUNCIONALIDADES PRINCIPALES:
+    ---------------------------------
+    1. VIDEO EN VIVO: Muestra el stream de la ESP32-CAM para 
+       monitoreo visual del entorno del ciclista.
+    
+    2. UBICACIÓN GPS: Visualiza latitud/longitud en tiempo real 
+       con enlace directo a Google Maps.
+    
+    3. ESTADO DEL CICLISTA: Tarjetas con indicadores visuales:
+       - Seguro (verde): Todo normal
+       - Distracción (amarillo): Conductor distraído
+       - Accidente (rojo): Impacto detectado
+       - Baja iluminación (azul): Condiciones de poca luz
+    
+    4. NIVEL DE LUZ: Barra porcentual que muestra la intensidad 
+       lumínica detectada por el sensor LDR.
+    
+    5. HISTORIAL DE EVENTOS: Registro cronológico de todas las 
+       alertas generadas (accidentes, distracciones, etc.)
+    
+    TECNOLOGÍAS UTILIZADAS:
+    ---------------------------------
+    - Firebase Realtime Database: Almacenamiento y sincronización
+    - Leaflet/OpenStreetMap: Base para mapas (no usado actualmente)
+    - MJPEG Stream: Visualización de video de ESP32-CAM
+    - HTML5/CSS3: Interfaz responsive con diseño cyberpunk
+    
+    INTEGRANTES DEL EQUIPO:
+    ---------------------------------
+    - Aguilar Figueroa Jose Miguel
+    - Liceaga Hernández Ángel Baruc
+    - Ibarra Muñoz Jose Francisco
+    - Zacarias Hernández Angel David
+    
+    MATERIA: Sistemas Programables
+    INSTITUTO: Tecnológico Nacional de México - Campus León
+    DOCENTE: Verónica Tapia
+    AÑO: 2026
+    ============================================================
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SafeRide - Dashboard de Control</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0c1b 0%, #15102a 100%);
+            min-height: 100vh; padding: 20px; color: #eee;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .columna-izquierda, .columna-derecha {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .header-box {
+            border: 2px solid #00b4d8;
+            border-radius: 8px;
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 180, 216, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header-box h1 { font-size: 2em; letter-spacing: 3px; color: #00b4d8; }
+        
+        .team-card {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(0, 180, 216, 0.3);
+            margin-bottom: 20px;
+        }
+        
+        .team-card h3 {
+            color: #00b4d8;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+        
+        .team-members {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+            font-size: 0.8em;
+            color: #ccc;
+        }
+        
+        .team-members span { color: #00b4d8; font-weight: bold; }
+        
+        .status-bar { font-weight: bold; margin-bottom: 20px; font-size: 1.1em; text-align: center; }
+        .section-title { font-size: 1.2em; color: #00b4d8; margin-bottom: 10px; border-left: 3px solid #00b4d8; padding-left: 10px; }
+        
+        .video-container {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #00b4d8;
+            position: relative;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .video-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .video-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.7em;
+            color: #00b4d8;
+            z-index: 10;
+        }
+        
+        .video-status {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.7em;
+            z-index: 10;
+        }
+        
+        .coordenadas { 
+            background: rgba(0,0,0,0.4); 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin-bottom: 10px; 
+            font-size: 0.9em; 
+            color: #aaa;
+        }
+        
+        .coordenadas span { color: #fff; font-weight: bold; }
+        
+        .google-maps-link {
+            background: rgba(0, 180, 216, 0.2);
+            border: 1px solid #00b4d8;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .google-maps-link a { color: #00b4d8; text-decoration: none; font-weight: bold; }
+        
+        .estado-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .badge { width: 14px; height: 14px; border-radius: 50%; background: #444; transition: all 0.3s ease; }
+        
+        .seguro-active { border-left: 5px solid #00ff88; background: rgba(0, 255, 136, 0.08); }
+        .seguro-active .badge { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+        
+        .distraccion-active { border-left: 5px solid #ffaa00; background: rgba(255, 170, 0, 0.08); }
+        .distraccion-active .badge { background: #ffaa00; box-shadow: 0 0 8px #ffaa00; }
+        
+        .accidente-active { border-left: 5px solid #ff4444; background: rgba(255, 68, 68, 0.12); }
+        .accidente-active .badge { background: #ff4444; box-shadow: 0 0 8px #ff4444; }
+        
+        .luz-active { border-left: 5px solid #00b4d8; background: rgba(0, 180, 216, 0.08); }
+        .luz-active .badge { background: #00b4d8; box-shadow: 0 0 8px #00b4d8; }
+        
+        .historial-box { 
+            max-height: 250px; 
+            overflow-y: auto; 
+            font-size: 0.85em; 
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .item-log { 
+            background: rgba(0,0,0,0.3); 
+            padding: 8px; 
+            margin-bottom: 8px; 
+            border-radius: 6px; 
+            border-left: 3px solid #00b4d8;
+        }
+        
+        .gps-warning {
+            background: rgba(255, 170, 0, 0.2);
+            border: 1px solid #ffaa00;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.8em;
+            margin-top: 10px;
+        }
+        
+        .luz-bar {
+            background: #333;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .luz-fill {
+            background: #00b4d8;
+            width: 0%;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .coordenada-boton {
+            background: rgba(0, 180, 216, 0.3);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 0.8em;
+        }
+        
+        .coordenada-boton:hover { background: rgba(0, 180, 216, 0.5); }
+        
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        
+        .control-btn {
+            background: rgba(0, 180, 216, 0.3);
+            border: 1px solid #00b4d8;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        
+        .control-btn:hover { background: rgba(0, 180, 216, 0.6); }
+        
+        @media (max-width: 768px) {
+            .main-grid { grid-template-columns: 1fr; gap: 15px; }
+            body { padding: 10px; }
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.7em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header-box">
+            <h1>🚴 SAFERIDE</h1>
+            <p style="font-size: 0.8em; color: #00b4d8;">Sistema Inteligente de Seguridad para Ciclistas</p>
+        </div>
+        
+        <div class="team-card">
+            <h3> EQUIPO DE DESARROLLO</h3>
+            <div class="team-members">
+                <div><span>🔹</span> Aguilar Figueroa Jose Miguel</div>
+                <div><span>🔹</span> Liceaga Hernández Ángel Baruc</div>
+                <div><span>🔹</span> Ibarra Muñoz Jose Francisco</div>
+                <div><span>🔹</span> Zacarias Hernández Angel David</div>
+            </div>
+        </div>
+        
+        <div class="status-bar"><span id="txt_conexion">🔴 Casco desconectado</span></div>
+        
+        <div class="main-grid">
+            <!-- Columna Izquierda -->
+            <div class="columna-izquierda">
+                <div class="section-title">📹 VIDEO EN VIVO - ESP32-CAM</div>
+                <div class="video-container">
+                    <div class="video-label">📹 SAFERIDE CAM</div>
+                    <div class="video-status" id="video-status">🟡 Conectando...</div>
+                    <img id="video-stream" src="" alt="Cargando video..." style="min-height: 300px; object-fit: cover;">
+                </div>
+                <div class="control-buttons">
+                    <button class="control-btn" onclick="recargarVideo()">🔄 Recargar video</button>
+                    <button class="control-btn" onclick="abrirCamaraEnNuevaPestaña()">📱 Abrir en nueva pestaña</button>
+                </div>
+                
+                <div class="section-title">📍 Ubicación GPS</div>
+                <div class="coordenadas">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <div>
+                            Latitud: <span id="lbl_lat">Esperando...</span><br>
+                            Longitud: <span id="lbl_lon">Esperando...</span>
+                        </div>
+                        <button class="coordenada-boton" onclick="copiarCoordenadas()"> Copiar</button>
+                    </div>
+                </div>
+                
+                <div class="google-maps-link" id="google_maps_link" style="display: none;">
+                    📍 <a id="maps_url" href="#" target="_blank">Abrir en Google Maps</a>
+                </div>
+                
+                <div id="gps_warning" class="gps-warning" style="display: none;">
+                    ⚠ Esperando señal GPS...
+                </div>
+                
+                <div class="section-title">💡 Nivel de luz</div>
+                <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>🔆 Intensidad:</span>
+                        <span><strong id="luz_valor">0%</strong></span>
+                    </div>
+                    <div class="luz-bar">
+                        <div class="luz-fill" id="luz_fill"></div>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 0.75em; color: #aaa;">
+                        Sensor LDR: <span id="ldr_raw">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Columna Derecha -->
+            <div class="columna-derecha">
+                <div class="section-title">🚨 Estado del ciclista</div>
+                <div id="card_seguro" class="estado-card"><span>✅ Seguro</span><div class="badge"></div></div>
+                <div id="card_distraccion" class="estado-card"><span>⚠ Distracción</span><div class="badge"></div></div>
+                <div id="card_accidente" class="estado-card"><span>🚨 Accidente</span><div class="badge"></div></div>
+                <div id="card_luz" class="estado-card"><span>🌙 Baja iluminación</span><div class="badge"></div></div>
+                
+                <div class="section-title">📋 Historial de eventos</div>
+                <div id="historial_logs" class="historial-box">
+                    <p style="color: #666; text-align: center;">Esperando eventos...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            SafeRide © 2026 -Instituto Tecnológico de León
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ========== CONFIGURACIÓN ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyCtdNUMAOR_SC8E8czez9s5o43raBZj0oo",
+            authDomain: "sistemas-programables-71bb0.firebaseapp.com",
+            databaseURL: "https://sistemas-programables-71bb0-default-rtdb.firebaseio.com",
+            projectId: "sistemas-programables-71bb0"
+        };
+        
+        // IP de la ESP32-CAM (ACTUALIZADA)
+        const CAMERA_IP = "172.20.10.3";
+        const STREAM_URL = `http://${CAMERA_IP}/stream`;
+        
+        // ========== INICIALIZAR ==========
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // ========== VIDEO EN VIVO ==========
+        const videoImg = document.getElementById('video-stream');
+        const videoStatus = document.getElementById('video-status');
+        
+        function iniciarVideo() {
+            videoImg.src = STREAM_URL + '?t=' + new Date().getTime();
+            videoStatus.innerHTML = "🟢 Video en vivo";
+            videoStatus.style.color = "#00ff88";
+        }
+        
+        function recargarVideo() {
+            videoStatus.innerHTML = "🔄 Recargando...";
+            videoStatus.style.color = "#ffaa00";
+            videoImg.src = STREAM_URL + '?t=' + new Date().getTime();
+            setTimeout(() => {
+                videoStatus.innerHTML = "🟢 Video en vivo";
+                videoStatus.style.color = "#00ff88";
+            }, 1000);
+        }
+        
+        function abrirCamaraEnNuevaPestaña() {
+            window.open(STREAM_URL, '_blank');
+        }
+        
+        // Verificar si la cámara está accesible
+        function verificarCamara() {
+            fetch(`http://${CAMERA_IP}/status`, { mode: 'no-cors', cache: 'no-cache' })
+                .then(() => {
+                    videoStatus.innerHTML = "🟢 Cámara conectada";
+                    videoStatus.style.color = "#00ff88";
+                })
+                .catch(() => {
+                    videoStatus.innerHTML = "🔴 Cámara no disponible";
+                    videoStatus.style.color = "#ff4444";
+                });
+        }
+        
+        // Iniciar video
+        iniciarVideo();
+        setInterval(verificarCamara, 10000);
+        
+        // ========== VARIABLES ==========
+        var latActual = 0;
+        var lonActual = 0;
+        
+        function copiarCoordenadas() {
+            const texto = `${latActual}, ${lonActual}`;
+            navigator.clipboard.writeText(texto);
+            alert("📋 Coordenadas copiadas: " + texto);
+        }
+        
+        function actualizarEstado(estado) {
+            const esSeguro = !(estado.accidente || estado.distraccion);
+            document.getElementById('card_seguro').className = esSeguro ? "estado-card seguro-active" : "estado-card";
+            document.getElementById('card_distraccion').className = estado.distraccion ? "estado-card distraccion-active" : "estado-card";
+            document.getElementById('card_accidente').className = estado.accidente ? "estado-card accidente-active" : "estado-card";
+            document.getElementById('card_luz').className = estado.baja_iluminacion ? "estado-card luz-active" : "estado-card";
+        }
+        
+        // ========== FIREBASE ==========
+        database.ref('estado/online').on('value', (snapshot) => {
+            const online = snapshot.val();
+            document.getElementById('txt_conexion').innerHTML = online === 1 ? "🟢 Casco conectado" : "🔴 Casco desconectado";
+        });
+        
+        database.ref('ubicacion').on('value', (snapshot) => {
+            const ubi = snapshot.val();
+            if (ubi) {
+                let lat = ubi.Latitud || ubi.latitud || 0;
+                let lon = ubi.Longitud || ubi.longitud || 0;
+                latActual = lat;
+                lonActual = lon;
+                document.getElementById('lbl_lat').innerHTML = lat.toFixed(6);
+                document.getElementById('lbl_lon').innerHTML = lon.toFixed(6);
+                
+                const gpsWarning = document.getElementById('gps_warning');
+                const googleLink = document.getElementById('google_maps_link');
+                const mapsUrl = document.getElementById('maps_url');
+                
+                if (lat !== 0 && lon !== 0) {
+                    gpsWarning.style.display = 'none';
+                    googleLink.style.display = 'block';
+                    mapsUrl.href = `https://www.google.com/maps?q=${lat},${lon}`;
+                    mapsUrl.innerHTML = `📍 Ver en Google Maps (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+                } else {
+                    gpsWarning.style.display = 'block';
+                    googleLink.style.display = 'none';
+                }
+            }
+        });
+        
+        database.ref('estado_ciclista').on('value', (snapshot) => {
+            actualizarEstado(snapshot.val() || {});
+        });
+        
+        database.ref('sensores/LDR').on('value', (snapshot) => {
+            const ldr = snapshot.val() || {};
+            const porcentaje = ldr.porcentaje || 0;
+            document.getElementById('luz_valor').innerHTML = `${porcentaje}%`;
+            document.getElementById('luz_fill').style.width = `${porcentaje}%`;
+            document.getElementById('ldr_raw').innerHTML = ldr.raw || 0;
+            
+            const luzFill = document.getElementById('luz_fill');
+            if (porcentaje < 30) luzFill.style.background = "#ff4444";
+            else if (porcentaje < 70) luzFill.style.background = "#ffaa00";
+            else luzFill.style.background = "#00ff88";
+        });
+        
+        database.ref('logs/eventos').limitToLast(10).on('child_added', (snapshot) => {
+            const log = snapshot.val();
+            const box = document.getElementById('historial_logs');
+            if (box.innerHTML.includes("Esperando eventos")) box.innerHTML = "";
+            const div = document.createElement('div');
+            div.className = 'item-log';
+            const fecha = log.timestamp ? new Date(log.timestamp).toLocaleString() : new Date().toLocaleString();
+            div.innerHTML = `<strong>[${fecha}] ${log.tipo}</strong><br>${log.mensaje}`;
+            box.insertBefore(div, box.firstChild);
+        });
+        
+        console.log("🚴 SafeRide Dashboard con VIDEO EN VIVO iniciado");
+        console.log(`📹 Conectando a cámara en: ${STREAM_URL}`);
+    </script>
+</body>
+</html>
