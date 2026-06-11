@@ -78,41 +78,64 @@ Funcionalidades implementadas
 ESP32 Principal (Casco)
 
 Conexión WiFi y MQTT
+
 Detección de impactos mediante MPU6050
+
 Activación de buzzer y pantalla OLED al detectar impacto
+
 Lectura de GPS y publicación de coordenadas
+
 Detección de baja iluminación con LDR
+
 Recepción de alertas de distracción por MQTT
+
 Pantalla OLED con estado, coordenadas y alertas prioritarias
+
 Envío periódico de telemetría cada 5 segundos
+
 Procesamiento en paralelo con múltiples hilos
 
 ESP32-CAM
+
 Captura de imágenes cada 2.5 segundos
+
 Envío de imágenes por MQTT
+
 Servidor MJPEG para video en vivo
 
 Python IA
+
 Procesamiento de imágenes con MobileNetV2 (TensorFlow)
+
 Detección de objetos como "cellular_telephone"
+
 Publicación de alertas en tópico MQTT
 
 Python Bridge
+
 Suscripción a tópicos MQTT
+
 Escritura en Firebase Realtime Database
 
 Dashboard Web
 Video en vivo de la ESP32-CAM
+
 Monitoreo de GPS con enlace a Google Maps
+
 Tarjetas de estado (Seguro, Distracción, Accidente, Baja iluminación)
+
 Barra porcentual del nivel de luz
+
 Historial de eventos con timestamps
 
 Enlaces
+
 Repositorio GitHub: https://github.com/DavidHernandez13/SAFERIDE
+
 Firebase Console: https://sistemas-programables-71bb0-default-rtdb.firebaseio.com/
 
 Fecha de entrega
+
 11 de Junio de 2026
 
 Instituto Tecnológico de León
