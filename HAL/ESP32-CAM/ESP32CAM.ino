@@ -1,4 +1,65 @@
-Cámara:
+/*
+==========================================================
+Proyecto: SAFERIDE - Sistema Inteligente de Seguridad para Ciclistas
+
+Archivo: ESP32CAM.ino
+
+Objetivo:
+Implementar el funcionamiento de la ESP32-CAM como módulo
+de monitoreo visual del sistema SafeRide, permitiendo la
+captura y transmisión de imágenes en tiempo real mediante
+un servidor HTTP (MJPEG), así como el envío periódico de
+fotografías a través del protocolo MQTT para su posterior
+procesamiento por el sistema de inteligencia artificial.
+
+Además, este módulo recibe alertas provenientes del broker
+MQTT para activar una alarma sonora mediante un buzzer,
+contribuyendo a la prevención de accidentes y distracciones
+del ciclista.
+
+Integrantes del equipo:
+---------------------------------
+- Aguilar Figueroa Jose Miguel
+- Liceaga Hernández Ángel Baruc
+- Ibarra Muñoz Jose Francisco
+- Zacarias Hernández Angel David
+
+---------------------------------
+Tecnológico Nacional de México - Campus León
+Ingeniería en Sistemas Computacionales
+Sistemas Programables
+
+Docente:
+Verónica Tapia
+
+Periodo:
+Enero - Junio 2026
+
+Descripción:
+Este programa configura la ESP32-CAM para conectarse a una
+red WiFi, establecer comunicación con un broker MQTT,
+capturar imágenes mediante la cámara integrada, transmitir
+video en vivo mediante streaming MJPEG y publicar
+fotografías periódicamente para su análisis mediante
+modelos de inteligencia artificial.
+
+Asimismo, implementa un servidor HTTP que permite la
+visualización remota de la cámara desde cualquier navegador
+web conectado a la misma red local y responde a eventos
+recibidos por MQTT activando un buzzer como mecanismo de
+alerta.
+
+Funciones principales:
+- Inicialización de la cámara ESP32-CAM.
+- Conexión a la red WiFi.
+- Conexión al broker MQTT.
+- Publicación periódica de imágenes.
+- Streaming de video en tiempo real (MJPEG).
+- Recepción de comandos MQTT.
+- Activación del buzzer de alerta.
+- Exposición de una interfaz HTTP para monitoreo.
+==========================================================
+*/
 #include "esp_camera.h"
 #include <WiFi.h>
 #include <PubSubClient.h>
