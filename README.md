@@ -158,23 +158,6 @@ pip install -r requirements.txt
 
 El archivo `requirements.txt` debe incluir las librerías utilizadas por el proyecto.
 
-## Librerías para ESP32
-
-* WiFi.h
-* TinyGPSPlus.h
-* PubSubClient.h
-* Wire.h
-* Adafruit_GFX.h
-* Adafruit_SSD1306.h
-* MPU6050.h
-
-## Librerías para ESP32-CAM
-
-* esp_camera.h
-* WiFi.h
-* PubSubClient.h
-* WebServer.h
-
 ---
 
 # Configuración de Mosquitto
