@@ -126,7 +126,7 @@ void setup() {
     Serial.printf("Error cámara: 0x%x\n", err);
     return;
   }
-  Serial.println("✅ CAMARA OK");
+  Serial.println(" CAMARA OK");
   
   // WiFi
   WiFi.begin(ssid, password);
@@ -135,8 +135,8 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\n✅ WiFi conectado!");
-  Serial.print("📡 IP: ");
+  Serial.println("\n WiFi conectado!");
+  Serial.print(" IP: ");
   Serial.println(WiFi.localIP());
   
   // Servidor HTTP
@@ -144,8 +144,8 @@ void setup() {
   server.on("/stream", handleStream);
   server.on("/status", handleStatus);
   server.begin();
-  Serial.println("✅ Servidor HTTP iniciado");
-  Serial.print("🎥 Video: http://");
+  Serial.println(" Servidor HTTP iniciado");
+  Serial.print(" Video: http://");
   Serial.print(WiFi.localIP());
   Serial.println("/stream");
   
@@ -157,7 +157,7 @@ void setup() {
   Serial.print("📡 Conectando a MQTT");
   while (!client.connected()) {
     if (client.connect("ESP32CAM_SafeRide")) {
-      Serial.println(" ✅ Conectado!");
+      Serial.println("  Conectado!");
       client.subscribe("saferide/alarma");
     } else {
       Serial.print(".");
@@ -166,8 +166,8 @@ void setup() {
   }
   
   Serial.println("==================================");
-  Serial.println("✅ SAFERIDE ESP32-CAM LISTA");
-  Serial.print("🎥 PRUEBA: Abre http://");
+  Serial.println(" SAFERIDE ESP32-CAM LISTA");
+  Serial.print(" PRUEBA: Abre http://");
   Serial.print(WiFi.localIP());
   Serial.println("/stream en tu navegador");
   Serial.println("==================================");
