@@ -1,147 +1,250 @@
-﻿# SAFERIDE - Sistema Inteligente de Seguridad para Ciclistas
---------------------------------------------------------------
+# SAFERIDE - Sistema Inteligente de Seguridad para Ciclistas
+
 ## Integrantes del equipo
-- Aguilar Figueroa José Miguel
-- Liceaga Hernández Angel Baruc
-- Ibarra Muñoz Jose Francisco
-- Zacarias Hernández Angel David
----
-## Objetivo del programa
-Desarrollar un sistema integral de seguridad para ciclistas urbanos mediante un casco inteligente equipado con sensores (MPU6050, GPS, LDR), actuadores (buzzer, Led) Pantalla OLED y una cámara con visión artificial (ESP32-CAM). El sistema detecta impactos, distracciones y baja iluminación, enviando alertas en tiempo real a un dashboard web a través de Firebase y MQTT.
+
+* Aguilar Figueroa José Miguel
+* Liceaga Hernández Ángel Baruc
+* Ibarra Muñoz José Francisco
+* Zacarias Hernández Angel David
 
 ---
 
-## Componentes del proyecto
+## Información general
 
-| Componente          | Función                                        |
-|---------------------|------------------------------------------------|
-| ESP32               | Microcontrolador principal del casco           |
-| ESP32-CAM           | Captura de imágenes y visión en tiempo real    |
-| MPU6050             | Detección de impactos y caídas                 |
-| GPS NEO-6M          | Geolocalización en tiempo real                 |
-| Sensor LDR          | Monitoreo de luz ambiental                     |
-| LED                 | Indicador visual de poca luz                   |
-| Buzzer Pasivo       | Alertas sonoras                                |
-| Pantalla OLED 0.96" | Telemetría y estado del sistema                |
-| Firebase Realtime Database | Almacenamiento en nube y sincronización |
-| Mosquitto MQTT      | Comunicación entre componentes                 |
+**Institución:** Tecnológico Nacional de México - Campus León
+**Carrera:** Ingeniería en Sistemas Computacionales
+**Materia:** Sistemas Programables
+**Docente:** Verónica Tapia
+**Periodo:** Enero - Junio 2026
 
 ---
 
-## Arquitectura del sistema
-ESP32 Principal (Casco) ──(MQTT)──→ Broker Mosquitto ──(MQTT)──→ Python Bridge ──→ Firebase
-│ │ │
-│ │ ↓
-│ │ Dashboard Web
-│ │
-ESP32-CAM ───────────────(MQTT)──────→┤
-│ │
-└──────────────(MQTT)──────────→ Python IA (Detección)
-└──(MQTT)──→ Broker (alarma)
+# Objetivo del proyecto
 
+SafeRide es un sistema inteligente diseñado para incrementar la seguridad de los ciclistas mediante el uso de sensores, visión artificial y comunicación en tiempo real.
+
+El proyecto integra un ESP32 como controlador principal y una ESP32-CAM para el monitoreo visual del entorno, permitiendo detectar accidentes, condiciones de baja iluminación y posibles distracciones del usuario. Toda la información es enviada mediante MQTT y almacenada en Firebase Realtime Database para su visualización en un dashboard web.
 
 ---
 
-## Estructura de Firebase
-{
-  "estado": {
-    "online": 1
-  },
-  "estado_ciclista": {
-    "accidente": false,
-    "distraccion": false,
-    "baja_iluminacion": false
-  },
-  "ubicacion": {
-    "Latitud": 21.109705,
-    "Longitud": 101.627620
-  },
-  "sensores": {
-    "LDR": {
-      "raw": 1843,
-      "porcentaje": 45
-    }
-  },
-  "logs": {
-    "eventos": {
-      "-Nkf7gH3": {
-        "tipo": "ACCIDENTE",
-        "mensaje": "Impacto detectado",
-        "timestamp": 1712345678
-      }
-    }
-  }
-}
+# Tecnologías utilizadas
 
+* ESP32
+* ESP32-CAM
+* Arduino IDE
+* Firebase Realtime Database
+* Mosquitto MQTT
+* Python
+* TensorFlow / MobileNetV2
+* HTML
+* CSS
+* JavaScript
 
-Funcionalidades implementadas
-ESP32 Principal (Casco)
+---
 
-Conexión WiFi y MQTT
+# Componentes del sistema
 
-Detección de impactos mediante MPU6050
+| Componente                 | Descripción                                 |
+| -------------------------- | ------------------------------------------- |
+| ESP32                      | Controlador principal del casco inteligente |
+| ESP32-CAM                  | Captura y transmisión de imágenes           |
+| MPU6050                    | Detección de impactos y aceleraciones       |
+| GPS NEO-6M                 | Obtención de coordenadas geográficas        |
+| Sensor LDR                 | Medición del nivel de iluminación           |
+| LED                        | Indicador visual de baja iluminación        |
+| Buzzer                     | Generación de alertas sonoras               |
+| Pantalla OLED              | Visualización del estado del sistema        |
+| Firebase Realtime Database | Almacenamiento de información en la nube    |
+| Mosquitto MQTT             | Comunicación entre dispositivos             |
 
-Activación de buzzer y pantalla OLED al detectar impacto
+---
 
-Lectura de GPS y publicación de coordenadas
+# Arquitectura del sistema
 
-Detección de baja iluminación con LDR
+```
+                    Dashboard Web
+                          │
+                          │
+             Firebase Realtime Database
+                          │
+                          │
+                Python Bridge / Backend
+                          │
+                          │
+               Broker MQTT (Mosquitto)
+                  ┌────────┴────────┐
+                  │                 │
+                  │                 │
+            ESP32 Principal     ESP32-CAM
+                  │                 │
+      MPU6050 - GPS - LDR - OLED    Cámara
+                  │                 │
+                  └────── Inteligencia Artificial ──────┘
+```
 
-Recepción de alertas de distracción por MQTT
+---
 
-Pantalla OLED con estado, coordenadas y alertas prioritarias
+# Estructura del repositorio
 
-Envío periódico de telemetría cada 5 segundos
+```
+SAFERIDE/
+│
+├── HAL/
+│   ├── ESP32/
+│   ├── ESP32-CAM/
+│   └── Firebase/
+│
+├── Servidor/
+│   └── Mosquitto/
+│
+├── Interfaz/
+│
+└── README.md
+```
 
-Procesamiento en paralelo con múltiples hilos
+---
 
-ESP32-CAM
+# Funcionalidades implementadas
 
-Captura de imágenes cada 2.5 segundos
+## ESP32 Principal
 
-Envío de imágenes por MQTT
+* Conexión a red WiFi.
+* Comunicación mediante MQTT.
+* Lectura del acelerómetro y giroscopio MPU6050.
+* Obtención de coordenadas GPS.
+* Detección de baja iluminación mediante LDR.
+* Activación de LED y buzzer.
+* Visualización de información en pantalla OLED.
+* Envío periódico de datos hacia Firebase.
 
-Servidor MJPEG para video en vivo
+## ESP32-CAM
 
-Python IA
+* Captura automática de imágenes.
+* Streaming de video mediante HTTP (MJPEG).
+* Envío de imágenes utilizando MQTT.
+* Recepción de alertas remotas.
+* Activación del buzzer.
 
-Procesamiento de imágenes con MobileNetV2 (TensorFlow)
+## Inteligencia Artificial
 
-Detección de objetos como "cellular_telephone"
+* Procesamiento de imágenes.
+* Detección de objetos de distracción.
+* Generación de alertas mediante MQTT.
 
-Publicación de alertas en tópico MQTT
+## Dashboard Web
 
-Python Bridge
+* Visualización del video en tiempo real.
+* Monitoreo de ubicación GPS.
+* Estado del ciclista.
+* Nivel de iluminación.
+* Historial de eventos.
+* Consulta de alertas registradas.
 
-Suscripción a tópicos MQTT
+---
 
-Escritura en Firebase Realtime Database
+# Instalación de dependencias
 
-Dashboard Web
-Video en vivo de la ESP32-CAM
+## Dependencias de Python
 
-Monitoreo de GPS con enlace a Google Maps
+Instalar todas las dependencias necesarias mediante:
 
-Tarjetas de estado (Seguro, Distracción, Accidente, Baja iluminación)
+```bash
+pip install -r requirements.txt
+```
 
-Barra porcentual del nivel de luz
+El archivo `requirements.txt` debe incluir las librerías utilizadas por el proyecto.
 
-Historial de eventos con timestamps
+## Librerías para ESP32
 
-Enlaces
+* WiFi.h
+* TinyGPSPlus.h
+* PubSubClient.h
+* Wire.h
+* Adafruit_GFX.h
+* Adafruit_SSD1306.h
+* MPU6050.h
 
-Repositorio GitHub: https://github.com/DavidHernandez13/SAFERIDE
+## Librerías para ESP32-CAM
 
-Firebase Console: https://sistemas-programables-71bb0-default-rtdb.firebaseio.com/
+* esp_camera.h
+* WiFi.h
+* PubSubClient.h
+* WebServer.h
 
+---
+
+# Configuración de Mosquitto
+
+Para iniciar el broker MQTT en Windows ejecutar:
+
+```cmd
+"C:\Program Files\mosquitto\mosquitto.exe" -c "C:\Program Files\mosquitto\mosquitto.conf" -v
+```
+
+Puerto utilizado:
+
+```
+1883
+```
+
+La dirección IP del broker deberá configurarse dentro de los dispositivos ESP32 según la red local utilizada.
+
+---
+
+# Ejecución del sistema
+
+1. Iniciar el servicio Mosquitto.
+2. Programar el ESP32 principal.
+3. Programar la ESP32-CAM mediante Arduino IDE.
+4. Configurar las credenciales locales de Firebase.
+5. Ejecutar el módulo Bridge y el procesamiento de Inteligencia Artificial.
+6. Abrir el Dashboard Web desde un navegador.
+7. Verificar la comunicación entre MQTT, Firebase y los dispositivos.
+
+---
+
+# Firebase Realtime Database
+
+La base de datos almacena información relacionada con:
+
+* Estado del sistema.
+* Estado del ciclista.
+* Coordenadas GPS.
+* Información de sensores.
+* Historial de eventos.
+* Alertas generadas por el sistema.
+
+La estructura general utilizada es:
+
+```
+estado
+estado_ciclista
+logs
+sensores
+ubicacion
+```
+
+---
+
+# Seguridad
+
+Por motivos de seguridad, las credenciales del proyecto (`credentials.json`) y cualquier archivo que contenga claves privadas o información sensible no se incluyen en este repositorio.
+
+Cada desarrollador deberá configurar sus propias credenciales para establecer la conexión con Firebase y los demás servicios utilizados por el proyecto.
+
+---
+
+# Repositorio
+
+https://github.com/DavidHernandez13/SAFERIDE
+
+---
+
+# Licencia
+
+Este proyecto fue desarrollado con fines académicos para la asignatura de Sistemas Programables del Tecnológico Nacional de México - Campus León durante el periodo Enero - Junio 2026.
 Fecha de entrega
 
 11 de Junio de 2026
 
-Instituto Tecnológico de León
-Ingeniería en Sistemas Computacionales
-Sistemas Programables
-Docente: Verónica Tapia
-
-SAFERIDE - Sistema Inteligente de Seguridad para Ciclistas
-© 2026
+SAFERIDE © 2026
