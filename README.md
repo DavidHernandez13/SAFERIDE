@@ -230,7 +230,8 @@ https://github.com/DavidHernandez13/SAFERIDE
 # Licencia
 
 Este proyecto fue desarrollado con fines académicos para la asignatura de Sistemas Programables del Tecnológico Nacional de México - Campus León durante el periodo Enero - Junio 2026.
-Fecha de entrega
+
+Fecha de entrega:
 
 11 de Junio de 2026
 
