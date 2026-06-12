@@ -12,9 +12,13 @@
 ## Información general
 
 **Institución:** Tecnológico Nacional de México - Campus León
+
 **Carrera:** Ingeniería en Sistemas Computacionales
+
 **Materia:** Sistemas Programables
+
 **Docente:** Verónica Tapia
+
 **Periodo:** Enero - Junio 2026
 
 ---
